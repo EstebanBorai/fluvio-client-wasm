@@ -28,7 +28,7 @@ export type TopicProducerConfig = {
 "#;
 
 impl TryFrom<TopicProducerConfig> for NativeTopicProducerConfig {
-    type Error = String;
+    type Error = JsError;
 
     fn try_from(config: TopicProducerConfig) -> Result<Self, Self::Error> {
         let mut builder = NativeTopicProducerConfigBuilder::default();
@@ -57,7 +57,7 @@ impl TryFrom<TopicProducerConfig> for NativeTopicProducerConfig {
             Some(compression) => Some(
                 compression
                     .parse::<Compression>()
-                    .map_err(|e| e.to_string())?,
+                    .map_err(|e| JsError::new(&e.to_string()))?,
             ),
             None => None,
         };
@@ -66,7 +66,7 @@ impl TryFrom<TopicProducerConfig> for NativeTopicProducerConfig {
             builder = builder.compression(compression);
         }
 
-        builder.build().map_err(|e| e.to_string())
+        builder.build().map_err(|e| JsError::new(&e.to_string()))
     }
 }
 
@@ -112,7 +112,7 @@ pub enum JsLevel {
 }
 
 impl TryInto<Level> for JsLevel {
-    type Error = JsValue;
+    type Error = JsError;
 
     fn try_into(self) -> Result<Level, <Self as TryInto<Level>>::Error> {
         match self {
@@ -121,9 +121,7 @@ impl TryInto<Level> for JsLevel {
             Self::Info => Ok(Level::Info),
             Self::Debug => Ok(Level::Debug),
             Self::Trace => Ok(Level::Trace),
-            _ => Err(JsValue::from_str(
-                "The level string should be Error | Warn | Info | Debug | Trace",
-            )),
+            _ => Err(JsError::new("The level string should be Error | Warn | Info | Debug | Trace")),
         }
     }
 }
